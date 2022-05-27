@@ -116,7 +116,7 @@ pipeline {
                     nexusArtifactUploader artifacts: [
                         [artifactId: 'webapp', 
                         classifier: '', 
-                        file: "target/Webapp.war", 
+                        file: "target/webapp.war", 
                         type: 'war']
                         ], 
                         credentialsId: 'ad', 
