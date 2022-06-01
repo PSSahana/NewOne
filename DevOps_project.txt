@@ -1,0 +1,75 @@
+1.Jenkins installation :
+----------------------------
+https://www.digitalocean.com/community/tutorials/how-to-install-jenkins-on-ubuntu-22-04
+
+2.sonarqube-install(follow the below website for installing sonarqube)
+-------------------------------------------------------------------
+https://gist.github.com/npearce/6f3c7826c7499587f00957fee62f8ee9
+https://docs.docker.com/compose/install/
+https://www.coachdevops.com/2021/12/install-sonarqube-using-docker-install.html?m=1
+
+once logged into sonar console, change the admin password.
+goto administarion-security-users-generate the token and copy it for integrating with genkins.
+
+3. nexsus installation steps
+---------------------------------------------------------
+https://github.com/PSSahana/NewOne/blob/main/webapp/pom.xml
+once logged into nexus console, change the admin password.
+go to browse- repositories-create new repository - under maven2 hosted create an repository. 
+give an name-select version policy as mixed-rest all the option are default -click on create
+
+4.tomcat installation
+-----------------------
+https://www.vultr.com/docs/install-apache-tomcat-on-ubuntu-20-04-39123/?utm_source=google-apac&utm_medium=paidmedia&obility_id=16876059738&utm_adgroup=&utm_campaign=&utm_term=&utm_content=&gclid=EAIaIQobChMIgMiIs_D89wIV-dpMAh0xgQ3dEAAYASAAEgLWpfD_BwE
+
+
+5.login to Jenkins console and download the pulgin in jenkins to integrate the sonarqube 
+go to- manage jenkins-manage plugins- avaialable seach below pugins, install without restart
+1.SonarQube Scanner plugin
+2.Sonar Quality Gates 
+3.ssh agent plugin
+4. Nexus artifact uploader
+5. nexus platform plugin
+6.Pipeline Utility Steps
+
+Soanrqube integration with jenkins
+post download
+go to manage jenkins- global tool configuration- add sonar qube scanner
+give an name for sonarqube and check the install automatically option- click on save
+
+setting environment variable for sonarqube
+go to manage jenkins-configure system- sonarqube server
+check the environment variable checkbox
+give a name for variable and give the private ip of the sonarqube server
+also add the generated toke in sonarqube console as secret text in credentials manger of jenkins
+save the configuration
+
+nexus integration with jenkins
+1. go to manage jenkins-configure system
+2.under Sonatype Nexus, setup the nexus server by giving name url(privateip) and credentialsof nexus server
+3. select nexus version as nexus3 and save.
+
+create an pipeline job
+
+under pipline section select pipeline script from SCM
+give the github url and give credentialsif its having and give scriptfile as Jenkisfile
+save the job and run
+
+jenkins file- explaination
+it has 6 stages
+
+Stage 1--It is to download the code from the git hub repository
+Stage 2--maven clean install -DskipTests it will skip the testing phase in maven clean life cycle and gernates an artifact
+stage 3-Here it is gloing to do the unit test by using mvn test command
+stage 4-quality gate check for static code analysis, here we are using the environment variable that we have given during configuration
+	maven is having the sonar plugin which has sonar goal to check for quality of code	
+	mvn sonar:sonar is used
+stage 5--in this stage we are copying the generated artifactinto nexus repository. for generating the code, make use of syntax generator
+	select the nexus artifact uploader option fill the details as per your configuaration generte the code, use it in pipeline
+stage 6--in this stage we are copying the artifact to tomcat server using sshagent
+	 sshagent(['tomcat-deploy']) {
+                    sh 'scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/latest/webapp/target/*.war ubuntu@10.0.10.19:/opt/tomcat/webapps/'
+                    }
+					
+					
+				here StrictHostKeyChecking is no meaning the it will not ask for would to like to login yes/no
